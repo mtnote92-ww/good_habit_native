@@ -51,14 +51,20 @@ window.GH_UI = (function () {
     return (d.getMonth() + 1) + "月" + d.getDate() + "日（" + w + "）";
   }
 
-  function habitCardHtml(habit) {
+  function habitCardHtml(habit, index, total) {
     var cat = CONTENT.categoryByKey(habit.categoryKey);
     var pct = Math.min(100, Math.round((habit.totalCompletedDays / habit.targetDays) * 100));
     var remaining = Math.max(0, habit.targetDays - habit.totalCompletedDays);
     var doneCls = habit.doneToday ? " done" : "";
     var nearCls = pct >= 80 ? " near-done" : "";
+    var upDisabled = index === 0;
+    var downDisabled = index === total - 1;
     return (
       '<div class="habit-card' + nearCls + '" data-habit-id="' + habit.id + '">' +
+        '<div class="habit-move">' +
+          '<button class="move-btn' + (upDisabled ? " disabled" : "") + '" data-action="move-habit-up" data-habit-id="' + habit.id + '" aria-label="上に移動"' + (upDisabled ? " disabled" : "") + ">" + ICONS.chevUp + "</button>" +
+          '<button class="move-btn' + (downDisabled ? " disabled" : "") + '" data-action="move-habit-down" data-habit-id="' + habit.id + '" aria-label="下に移動"' + (downDisabled ? " disabled" : "") + ">" + ICONS.chevDown + "</button>" +
+        "</div>" +
         '<button class="check' + doneCls + '" data-action="toggle-habit" data-habit-id="' + habit.id + '" aria-label="達成する">' +
           (habit.doneToday ? ICONS.check : "") +
         "</button>" +
@@ -86,7 +92,9 @@ window.GH_UI = (function () {
     if (list.length === 0) {
       el("habit-list").innerHTML = '<div class="habit-empty">まだ習慣が登録されていません。<br>右下の＋から、最初の習慣を登録しましょう。</div>';
     } else {
-      el("habit-list").innerHTML = list.map(habitCardHtml).join("");
+      el("habit-list").innerHTML = list.map(function (habit, index) {
+        return habitCardHtml(habit, index, list.length);
+      }).join("");
     }
 
     var banner = el("skipped-banner");

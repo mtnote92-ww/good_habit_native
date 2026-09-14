@@ -4,7 +4,7 @@
    中身を更新したら CACHE_NAME のバージョンを上げること。
    ========================================================================== */
 
-var CACHE_NAME = "good-habits-v3";
+var CACHE_NAME = "good-habits-v4";
 
 var CORE_ASSETS = [
   "./",

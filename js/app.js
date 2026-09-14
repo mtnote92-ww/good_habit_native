@@ -90,6 +90,26 @@
       return;
     }
 
+    var moveUpBtn = e.target.closest('[data-action="move-habit-up"]');
+    if (moveUpBtn) {
+      var upId = Number(moveUpBtn.getAttribute("data-habit-id"));
+      if (LOGIC.moveHabit(state, upId, -1)) {
+        persist();
+        UI.renderHome(state, currentMessage);
+      }
+      return;
+    }
+
+    var moveDownBtn = e.target.closest('[data-action="move-habit-down"]');
+    if (moveDownBtn) {
+      var downId = Number(moveDownBtn.getAttribute("data-habit-id"));
+      if (LOGIC.moveHabit(state, downId, 1)) {
+        persist();
+        UI.renderHome(state, currentMessage);
+      }
+      return;
+    }
+
     var toggleBtn = e.target.closest('[data-action="toggle-habit"]');
     if (toggleBtn) {
       var hid = Number(toggleBtn.getAttribute("data-habit-id"));

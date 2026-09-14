@@ -79,6 +79,21 @@ window.GH_LOGIC = (function () {
     state.habits = state.habits.filter(function (h) { return h.id !== habitId; });
   }
 
+  // 表示順を1つ入れ替える。direction: -1で上へ、+1で下へ。
+  function moveHabit(state, habitId, direction) {
+    var idx = -1;
+    for (var i = 0; i < state.habits.length; i++) {
+      if (state.habits[i].id === habitId) { idx = i; break; }
+    }
+    if (idx === -1) return false;
+    var target = idx + direction;
+    if (target < 0 || target >= state.habits.length) return false;
+    var tmp = state.habits[idx];
+    state.habits[idx] = state.habits[target];
+    state.habits[target] = tmp;
+    return true;
+  }
+
   function checkBadges(state, dayKey) {
     var newly = [];
     BADGES.ALL.forEach(function (b) {
@@ -203,6 +218,7 @@ window.GH_LOGIC = (function () {
     runRollover: runRollover,
     addHabit: addHabit,
     removeHabit: removeHabit,
+    moveHabit: moveHabit,
     toggleHabitDone: toggleHabitDone,
     checkBadges: checkBadges,
     buildMonthMatrix: buildMonthMatrix,

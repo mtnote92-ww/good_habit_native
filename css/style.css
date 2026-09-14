@@ -150,6 +150,11 @@ svg { display: block; }
 }
 .habit-card.near-done { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
 
+.habit-move { flex: none; display: flex; flex-direction: column; gap: 2px; }
+.move-btn { color: var(--text-dim); padding: 2px; }
+.move-btn svg { width: 14px; height: 14px; }
+.move-btn.disabled { opacity: 0.25; pointer-events: none; }
+
 .check {
   width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--accent);
   flex: none; display: flex; align-items: center; justify-content: center; color: var(--accent-ink);
