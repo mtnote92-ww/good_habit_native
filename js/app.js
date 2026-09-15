@@ -251,7 +251,7 @@
 
   var SKIPPED_NOTIFICATION_HOURS = [10, 12, 21];
   var SKIPPED_NOTIFICATION_ID_BASE = 9001;
-  var SKIPPED_NOTIFICATION_NAMES_SHOWN = 3;
+  var SKIPPED_NOTIFICATION_NAMES_SHOWN = 2;
 
   function getLocalNotifications() {
     return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) || null;
