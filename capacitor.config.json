@@ -1,0 +1,15 @@
+{
+  "appId": "com.mtnt92.goodhabits",
+  "appName": "Good-Habits",
+  "webDir": "www",
+  "plugins": {
+    "SplashScreen": {
+      "backgroundColor": "#0d1526"
+    },
+    "StatusBar": {
+      "backgroundColor": "#0d1526",
+      "style": "LIGHT",
+      "overlaysWebView": false
+    }
+  }
+}

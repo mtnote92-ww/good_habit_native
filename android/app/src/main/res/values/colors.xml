@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App brand colors, matching manifest.json's theme_color/background_color (#0d1526 navy)
+         and the gold accent used in the app icon/mark. -->
+    <color name="colorPrimary">#0d1526</color>
+    <color name="colorPrimaryDark">#060a13</color>
+    <color name="colorAccent">#c9a24b</color>
+</resources>

@@ -248,6 +248,8 @@
   // ---- Service Worker（オフライン対応・ホーム画面追加） -------------------------
 
   function registerServiceWorker() {
+    // ネイティブアプリ（Capacitor）内では資産が端末内にバンドルされておりSWのオフラインキャッシュが不要なため登録しない。
+    if (window.Capacitor) return;
     if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
       window.addEventListener("load", function () {
         navigator.serviceWorker.register("sw.js").catch(function (err) {

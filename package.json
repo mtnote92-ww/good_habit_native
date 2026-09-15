@@ -1,0 +1,25 @@
+{
+  "name": "good-habits",
+  "private": true,
+  "version": "1.1.0",
+  "description": "習慣化を助けるアプリ。行動を登録して、習慣になるまで一緒に積み重ねます。",
+  "scripts": {
+    "fonts:update": "node scripts/update-fonts.js",
+    "web:copy": "node scripts/copy-web.js",
+    "android:sync": "npm run web:copy && cap sync android",
+    "android:open": "cap open android",
+    "android:run": "npm run web:copy && cap run android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/status-bar": "^8.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5"
+  },
+  "allowScripts": {
+    "sharp@0.32.6": true
+  }
+}

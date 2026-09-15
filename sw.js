@@ -4,13 +4,21 @@
    中身を更新したら CACHE_NAME のバージョンを上げること。
    ========================================================================== */
 
-var CACHE_NAME = "good-habits-v4";
+var CACHE_NAME = "good-habits-v5";
 
 var CORE_ASSETS = [
   "./",
   "./index.html",
   "./manifest.json",
   "./css/style.css",
+  "./css/fonts.css",
+  "./css/fonts/shippori-mincho-500.woff2",
+  "./css/fonts/shippori-mincho-700.woff2",
+  "./css/fonts/shippori-mincho-800.woff2",
+  "./css/fonts/zen-kaku-gothic-new-400.woff2",
+  "./css/fonts/zen-kaku-gothic-new-500.woff2",
+  "./css/fonts/zen-kaku-gothic-new-700.woff2",
+  "./css/fonts/zen-kaku-gothic-new-900.woff2",
   "./js/icons.js",
   "./js/content.js",
   "./js/badges.js",
@@ -48,7 +56,6 @@ self.addEventListener("activate", function (event) {
 });
 
 // キャッシュ優先、なければネットワーク取得し、成功したものは以後のためにキャッシュへ保存する。
-// （Google Fontsなど別オリジンのリソースも同様に扱い、オフライン時の表示崩れを減らす）
 self.addEventListener("fetch", function (event) {
   if (event.request.method !== "GET") return;
 
