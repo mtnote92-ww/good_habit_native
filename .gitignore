@@ -19,3 +19,9 @@ android/.idea/
 *.jks
 *.keystore
 android/keystore.properties
+
+# Local dev notes (not needed in public repo)
+CLAUDE.md
+
+# Dated feature-summary snapshots (local dev notes, not for public repo)
+[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9].md
