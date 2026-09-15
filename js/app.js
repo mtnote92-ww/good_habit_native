@@ -250,17 +250,30 @@
   // Androidネイティブ版は @capacitor/local-notifications によるローカル通知（サーバー不要）で実現する。
 
   var SKIPPED_NOTIFICATION_HOURS = [10, 12, 21];
-  var SKIPPED_NOTIFICATION_MESSAGE = "昨日はお疲れさまでした。今日からスタートすれば習慣化につながります！";
   var SKIPPED_NOTIFICATION_ID_BASE = 9001;
+  var SKIPPED_NOTIFICATION_NAMES_SHOWN = 3;
 
   function getLocalNotifications() {
     return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) || null;
   }
 
-  function scheduleSkippedNotifications() {
+  function formatSkippedHabitNames(names) {
+    var shown = names.slice(0, SKIPPED_NOTIFICATION_NAMES_SHOWN)
+      .map(function (n) { return "「" + n + "」"; })
+      .join("");
+    if (names.length > SKIPPED_NOTIFICATION_NAMES_SHOWN) shown += "など";
+    return shown;
+  }
+
+  function buildSkippedNotificationMessage(skippedHabitNames) {
+    return "昨日はお疲れさまでした。" + formatSkippedHabitNames(skippedHabitNames) + "が未達成でしたが、今日再開すれば習慣化につながります！";
+  }
+
+  function scheduleSkippedNotifications(skippedHabitNames) {
     var LocalNotifications = getLocalNotifications();
     if (!LocalNotifications) return;
 
+    var message = buildSkippedNotificationMessage(skippedHabitNames);
     var now = new Date();
     var cancelIds = SKIPPED_NOTIFICATION_HOURS.map(function (_, i) {
       return { id: SKIPPED_NOTIFICATION_ID_BASE + i };
@@ -279,7 +292,7 @@
             return {
               id: n.id,
               title: "Good-Habits",
-              body: SKIPPED_NOTIFICATION_MESSAGE,
+              body: message,
               schedule: { at: n.at }
             };
           })
@@ -316,7 +329,7 @@
     persist();
 
     if (rollover.skippedAny && state.settings.notifySkipped) {
-      scheduleSkippedNotifications();
+      scheduleSkippedNotifications(rollover.skippedHabitNames);
     }
 
     goTo("home");

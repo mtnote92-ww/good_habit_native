@@ -23,14 +23,15 @@ window.GH_LOGIC = (function () {
     var today = todayKey(state, now);
     if (!state.meta.lastRolloverDay) {
       state.meta.lastRolloverDay = today;
-      return { rolled: false, skippedAny: false };
+      return { rolled: false, skippedAny: false, skippedHabitNames: [] };
     }
     if (state.meta.lastRolloverDay === today) {
-      return { rolled: false, skippedAny: false };
+      return { rolled: false, skippedAny: false, skippedHabitNames: [] };
     }
 
     var cursor = state.meta.lastRolloverDay;
     var skippedAny = false;
+    var skippedHabitNames = [];
     var guard = 0;
     while (cursor !== today && guard < 3650) {
       recordHistoryForDay(state, cursor);
@@ -39,7 +40,10 @@ window.GH_LOGIC = (function () {
         state.habits.length
       );
       state.habits.forEach(function (h) {
-        if (!h.doneToday && h.currentStreak > 0) skippedAny = true;
+        if (!h.doneToday && h.currentStreak > 0) {
+          skippedAny = true;
+          if (skippedHabitNames.indexOf(h.name) === -1) skippedHabitNames.push(h.name);
+        }
         if (!h.doneToday) h.currentStreak = 0;
         h.doneToday = false;
       });
@@ -50,7 +54,7 @@ window.GH_LOGIC = (function () {
     if (skippedAny && state.settings.notifySkipped) {
       state.meta.skippedBannerPending = true;
     }
-    return { rolled: true, skippedAny: skippedAny };
+    return { rolled: true, skippedAny: skippedAny, skippedHabitNames: skippedHabitNames };
   }
 
   function addHabit(state, name, categoryKey) {
