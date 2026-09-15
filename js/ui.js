@@ -315,8 +315,15 @@ window.GH_UI = (function () {
       return '<button class="chip' + (selected ? " selected" : "") + '" data-reset-hour="' + h + '">' + h + "時</button>";
     }).join("");
 
+    var hasNativeSkippedNotification = !!(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications);
     var toggles = [
-      { key: "notifySkipped", name: "未達成日のバナー通知", desc: "前日サボった習慣がある場合にアプリ内で通知" },
+      {
+        key: "notifySkipped",
+        name: "未達成日の通知",
+        desc: hasNativeSkippedNotification
+          ? "前日サボった習慣がある場合、翌日10時・12時・21時にOS通知＋アプリ内バナーで通知"
+          : "前日サボった習慣がある場合にアプリ内バナーで通知"
+      },
       { key: "notifySound", name: "達成演出サウンド", desc: "花火演出・称賛コメント時の効果音（今後実装予定）" }
     ];
     el("toggle-card").innerHTML = toggles.map(function (t) {

@@ -245,6 +245,51 @@
     goTo("badges");
   });
 
+  // ---- OS通知（Androidネイティブ限定・前日サボった場合の翌日リマインド） -----------
+  // Web/PWA版はサーバーがなく時刻指定のプッシュ通知を保証できないため対象外（アプリ内バナーのみ）。
+  // Androidネイティブ版は @capacitor/local-notifications によるローカル通知（サーバー不要）で実現する。
+
+  var SKIPPED_NOTIFICATION_HOURS = [10, 12, 21];
+  var SKIPPED_NOTIFICATION_MESSAGE = "昨日はお疲れさまでした。今日からスタートすれば習慣化につながります！";
+  var SKIPPED_NOTIFICATION_ID_BASE = 9001;
+
+  function getLocalNotifications() {
+    return (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) || null;
+  }
+
+  function scheduleSkippedNotifications() {
+    var LocalNotifications = getLocalNotifications();
+    if (!LocalNotifications) return;
+
+    var now = new Date();
+    var cancelIds = SKIPPED_NOTIFICATION_HOURS.map(function (_, i) {
+      return { id: SKIPPED_NOTIFICATION_ID_BASE + i };
+    });
+    var pending = SKIPPED_NOTIFICATION_HOURS.map(function (hour, i) {
+      var at = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, 0, 0, 0);
+      return { id: SKIPPED_NOTIFICATION_ID_BASE + i, at: at };
+    }).filter(function (n) { return n.at.getTime() > now.getTime(); });
+
+    LocalNotifications.requestPermissions().then(function (result) {
+      if (result.display !== "granted") return null;
+      return LocalNotifications.cancel({ notifications: cancelIds }).catch(function () {}).then(function () {
+        if (!pending.length) return null;
+        return LocalNotifications.schedule({
+          notifications: pending.map(function (n) {
+            return {
+              id: n.id,
+              title: "Good-Habits",
+              body: SKIPPED_NOTIFICATION_MESSAGE,
+              schedule: { at: n.at }
+            };
+          })
+        });
+      });
+    }).catch(function (err) {
+      console.warn("Good-Habits: OS通知のスケジュールに失敗しました。", err);
+    });
+  }
+
   // ---- Service Worker（オフライン対応・ホーム画面追加） -------------------------
 
   function registerServiceWorker() {
@@ -266,9 +311,13 @@
     UI.applyTheme(state.settings.theme);
     initHeatmapDate();
 
-    LOGIC.runRollover(state, new Date());
+    var rollover = LOGIC.runRollover(state, new Date());
     currentMessage = CONTENT.randomMessage();
     persist();
+
+    if (rollover.skippedAny && state.settings.notifySkipped) {
+      scheduleSkippedNotifications();
+    }
 
     goTo("home");
     registerServiceWorker();
