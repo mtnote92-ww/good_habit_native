@@ -245,9 +245,8 @@
     goTo("badges");
   });
 
-  // ---- OS通知（Androidネイティブ限定・前日サボった場合の翌日リマインド） -----------
-  // Web/PWA版はサーバーがなく時刻指定のプッシュ通知を保証できないため対象外（アプリ内バナーのみ）。
-  // Androidネイティブ版は @capacitor/local-notifications によるローカル通知（サーバー不要）で実現する。
+  // ---- OS通知（前日サボった場合の翌日リマインド） ------------------------------
+  // @capacitor/local-notifications によるローカル通知（サーバー不要）で実現する。
 
   var SKIPPED_NOTIFICATION_HOURS = [10, 12, 21];
   var SKIPPED_NOTIFICATION_ID_BASE = 9001;
@@ -303,20 +302,6 @@
     });
   }
 
-  // ---- Service Worker（オフライン対応・ホーム画面追加） -------------------------
-
-  function registerServiceWorker() {
-    // ネイティブアプリ（Capacitor）内では資産が端末内にバンドルされておりSWのオフラインキャッシュが不要なため登録しない。
-    if (window.Capacitor) return;
-    if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
-      window.addEventListener("load", function () {
-        navigator.serviceWorker.register("sw.js").catch(function (err) {
-          console.warn("Good-Habits: Service Workerの登録に失敗しました。", err);
-        });
-      });
-    }
-  }
-
   // ---- 起動 -------------------------------------------------------------------
 
   function boot() {
@@ -333,7 +318,6 @@
     }
 
     goTo("home");
-    registerServiceWorker();
   }
 
   boot();

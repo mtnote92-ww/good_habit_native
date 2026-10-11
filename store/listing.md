@@ -66,10 +66,10 @@ Good-Habits
 GitHub Pages で公開する [privacy-policy.html](../privacy-policy.html) のURLを指定する:
 
 ```
-https://mtateishi-92.github.io/good-habits/privacy-policy.html
+https://mtnote92-ww.github.io/good_habit_native/privacy-policy.html
 ```
 
-（GitHub Pagesのリポジトリ名が変わっている場合は実際のURLに置き換える）
+（`mtnote92-ww/good_habit_native` リポジトリで GitHub Pages を有効にしておくこと。リポジトリ名が変わった場合は実際のURLに置き換える）
 
 ### 対象年齢 / ターゲットオーディエンス
 

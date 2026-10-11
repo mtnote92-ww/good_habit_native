@@ -315,15 +315,8 @@ window.GH_UI = (function () {
       return '<button class="chip' + (selected ? " selected" : "") + '" data-reset-hour="' + h + '">' + h + "時</button>";
     }).join("");
 
-    var hasNativeSkippedNotification = !!(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications);
     var toggles = [
-      {
-        key: "notifySkipped",
-        name: "未達成日の通知",
-        desc: hasNativeSkippedNotification
-          ? "前日サボった習慣がある場合、翌日10時・12時・21時にOS通知＋アプリ内バナーで通知"
-          : "前日サボった習慣がある場合にアプリ内バナーで通知"
-      },
+      { key: "notifySkipped", name: "未達成日の通知", desc: "前日サボった習慣がある場合、翌日10時・12時・21時にOS通知＋アプリ内バナーで通知" },
       { key: "notifySound", name: "達成演出サウンド", desc: "花火演出・称賛コメント時の効果音（今後実装予定）" }
     ];
     el("toggle-card").innerHTML = toggles.map(function (t) {
@@ -337,7 +330,7 @@ window.GH_UI = (function () {
     }).join("");
 
     el("backup-card").innerHTML =
-      '<div class="backup-desc">記録はこの端末の中だけに保存されます。機種変更・アプリの削除・ブラウザのデータ消去で失われるため、ときどきバックアップを書き出して保管してください。</div>' +
+      '<div class="backup-desc">記録はこの端末の中だけに保存されます。機種変更・アプリの削除・アプリのデータ消去で失われるため、ときどきバックアップを書き出して保管してください。</div>' +
       '<div class="backup-btns">' +
         '<button class="btn-sub" data-action="export-data">ファイルに書き出す</button>' +
         '<button class="btn-sub" data-action="copy-data">コピー</button>' +

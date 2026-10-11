@@ -44,12 +44,8 @@ def render_mark(logical_size, background):
     return img.resize((logical_size, logical_size), Image.LANCZOS)
 
 
-# ---- PWA / browser icons (unchanged sizes, in icons/) ----------------------
+# Run from scripts/: `cd scripts && python gen_icon.py` (requires Pillow).
 master = render_mark(1024, background=True)
-master.resize((512, 512), Image.LANCZOS).save("icon-512.png")
-master.resize((192, 192), Image.LANCZOS).save("icon-192.png")
-master.resize((180, 180), Image.LANCZOS).save("apple-touch-icon.png")
-master.resize((32, 32), Image.LANCZOS).save("favicon-32.png")
 
 # ---- Native app store / Capacitor Assets source images (in ../assets/) ----
 # Consumed by `npx @capacitor/assets generate` to produce Android launcher
