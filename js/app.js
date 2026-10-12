@@ -117,6 +117,9 @@
       if (result.changed) {
         persist();
         UI.renderHome(state, currentMessage);
+        if (result.done && state.habits.every(function (h) { return h.doneToday; })) {
+          cancelSkippedNotifications();
+        }
         if (result.achieved) {
           UI.showCelebration(result.achieved, result.newlyEarnedBadges);
         } else if (result.done) {
@@ -268,15 +271,28 @@
     return "昨日はお疲れさまでした。" + formatSkippedHabitNames(skippedHabitNames) + "が未達成でしたが、今日再開すれば習慣化につながります！";
   }
 
+  function skippedNotificationIds() {
+    return SKIPPED_NOTIFICATION_HOURS.map(function (_, i) {
+      return { id: SKIPPED_NOTIFICATION_ID_BASE + i };
+    });
+  }
+
+  // 今日の習慣をすべて達成したら、まだ届いていない「未達成でした」通知は不要なので取り消す
+  function cancelSkippedNotifications() {
+    var LocalNotifications = getLocalNotifications();
+    if (!LocalNotifications) return;
+    LocalNotifications.cancel({ notifications: skippedNotificationIds() }).catch(function (err) {
+      console.warn("Good-Habits: OS通知の取り消しに失敗しました。", err);
+    });
+  }
+
   function scheduleSkippedNotifications(skippedHabitNames) {
     var LocalNotifications = getLocalNotifications();
     if (!LocalNotifications) return;
 
     var message = buildSkippedNotificationMessage(skippedHabitNames);
     var now = new Date();
-    var cancelIds = SKIPPED_NOTIFICATION_HOURS.map(function (_, i) {
-      return { id: SKIPPED_NOTIFICATION_ID_BASE + i };
-    });
+    var cancelIds = skippedNotificationIds();
     var pending = SKIPPED_NOTIFICATION_HOURS.map(function (hour, i) {
       var at = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, 0, 0, 0);
       return { id: SKIPPED_NOTIFICATION_ID_BASE + i, at: at };
