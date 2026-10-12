@@ -7,8 +7,14 @@ window.GH_LOGIC = (function () {
   var CONTENT = window.GH_CONTENT;
   var BADGES = window.GH_BADGES;
 
+  // リスト更新時刻を遅らせた直後（例: 1:30 に 0時→2時）や端末の時計を戻したときは、
+  // 計算上の「今日」がロールオーバー済みの日より前になる。その場合はロールオーバー済みの日を
+  // 今日とみなし、日付が過去へ戻らないようにする（戻ると runRollover が未来へ向かって
+  // 最大3650日ぶん進み、連続日数をリセットしてしまう）。キーは 'YYYY-MM-DD' なので文字列比較でよい。
   function todayKey(state, now) {
-    return S.appDayKey(state.settings.resetHour, now);
+    var key = S.appDayKey(state.settings.resetHour, now);
+    var last = state.meta && state.meta.lastRolloverDay;
+    return last && last > key ? last : key;
   }
 
   function recordHistoryForDay(state, dayKey) {
