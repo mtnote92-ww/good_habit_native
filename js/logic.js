@@ -17,6 +17,24 @@ window.GH_LOGIC = (function () {
     state.history[dayKey] = { done: done, total: state.habits.length };
   }
 
+  // 日付の境目を迎えた時点でこの状態なら「サボった」とみなす（連続中なのに今日は未達成）
+  function wouldBeSkipped(habit) {
+    return !habit.doneToday && habit.currentStreak > 0;
+  }
+
+  // このまま今日が終わると「サボった」扱いになる習慣の名前（翌日の通知の予約に使う）
+  function atRiskHabitNames(state) {
+    var names = [];
+    state.habits.forEach(function (h) {
+      if (wouldBeSkipped(h) && names.indexOf(h.name) === -1) names.push(h.name);
+    });
+    return names;
+  }
+
+  function allDoneToday(state) {
+    return state.habits.every(function (h) { return h.doneToday; });
+  }
+
   // アプリを開くたびに呼び出す。設定した更新時刻をまたいでいたら、
   // 前日分を確定させてストリークを更新し、当日分をリセットする。
   function runRollover(state, now) {
@@ -40,7 +58,7 @@ window.GH_LOGIC = (function () {
         state.habits.length
       );
       state.habits.forEach(function (h) {
-        if (!h.doneToday && h.currentStreak > 0) {
+        if (wouldBeSkipped(h)) {
           skippedAny = true;
           if (skippedHabitNames.indexOf(h.name) === -1) skippedHabitNames.push(h.name);
         }
@@ -51,6 +69,8 @@ window.GH_LOGIC = (function () {
       guard++;
     }
     state.meta.lastRolloverDay = today;
+    // 今日の通知の再予約（チェックの付け外しや復帰時）に使うため、サボった習慣名を保存しておく
+    state.meta.skippedNotice = skippedAny ? { day: today, names: skippedHabitNames } : null;
     if (skippedAny && state.settings.notifySkipped) {
       state.meta.skippedBannerPending = true;
     }
@@ -220,6 +240,8 @@ window.GH_LOGIC = (function () {
   return {
     todayKey: todayKey,
     runRollover: runRollover,
+    atRiskHabitNames: atRiskHabitNames,
+    allDoneToday: allDoneToday,
     addHabit: addHabit,
     removeHabit: removeHabit,
     moveHabit: moveHabit,

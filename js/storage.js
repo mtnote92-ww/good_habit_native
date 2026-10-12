@@ -51,6 +51,7 @@ window.GH_STORAGE = (function () {
       meta: {
         lastRolloverDay: null,
         skippedBannerPending: false,
+        skippedNotice: null, // { day: 'YYYY-MM-DD', names: [...] } 前日サボった習慣（その日の通知用）
         nextHabitId: 1
       }
     };
@@ -62,6 +63,7 @@ window.GH_STORAGE = (function () {
     if (!state.meta) state.meta = defaultState().meta;
     if (!state.badges) state.badges = {};
     if (!state.history) state.history = {};
+    if (!("skippedNotice" in state.meta)) state.meta.skippedNotice = null;
     return state;
   }
 

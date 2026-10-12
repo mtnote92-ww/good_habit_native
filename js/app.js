@@ -13,6 +13,7 @@
   var currentMessage = null;
   var selectedBadgeId = null;
   var heatmapYear, heatmapMonth;
+  var activeScreen = null;
 
   function persist() { STORAGE.save(state); }
 
@@ -21,6 +22,7 @@
     var target = el("screen-" + name);
     if (!target) return;
     target.classList.add("active");
+    activeScreen = name;
 
     if (name === "home") UI.renderHome(state, currentMessage);
     if (name === "add") UI.resetAddScreen();
@@ -86,6 +88,7 @@
         LOGIC.removeHabit(state, rid);
         persist();
         UI.renderHome(state, currentMessage);
+        syncSkippedNotifications();
       }
       return;
     }
@@ -117,9 +120,7 @@
       if (result.changed) {
         persist();
         UI.renderHome(state, currentMessage);
-        if (result.done && state.habits.every(function (h) { return h.doneToday; })) {
-          cancelSkippedNotifications();
-        }
+        syncSkippedNotifications();
         if (result.achieved) {
           UI.showCelebration(result.achieved, result.newlyEarnedBadges);
         } else if (result.done) {
@@ -158,6 +159,8 @@
       state.settings.resetHour = Number(hourChoice.getAttribute("data-reset-hour"));
       persist();
       UI.renderSettings(state);
+      syncSkippedNotifications();
+      armDayChangeTimer();
       return;
     }
 
@@ -167,6 +170,10 @@
       state.settings[key] = !state.settings[key];
       persist();
       UI.renderSettings(state);
+      if (key === "notifySkipped") {
+        syncSkippedNotifications();
+        requestNotificationPermissionIfUndecided();
+      }
       return;
     }
 
@@ -221,6 +228,8 @@
     LOGIC.addHabit(state, name, cat);
     persist();
     goTo("home");
+    syncSkippedNotifications();
+    requestNotificationPermissionIfUndecided();
   });
 
   el("badge-detail-back").addEventListener("click", function () { goTo("badges"); });
@@ -250,9 +259,12 @@
 
   // ---- OS通知（前日サボった場合の翌日リマインド） ------------------------------
   // @capacitor/local-notifications によるローカル通知（サーバー不要）で実現する。
+  // アプリを開かない日にも届くよう、「このまま今日が終わるとサボり扱いになる習慣」があれば
+  // 明日の分を前もって予約しておく。予約は state から毎回計算し直す（syncSkippedNotifications）。
 
   var SKIPPED_NOTIFICATION_HOURS = [10, 12, 21];
-  var SKIPPED_NOTIFICATION_ID_BASE = 9001;
+  var TODAY_NOTIFICATION_ID_BASE = 9001;    // 9001〜9003: 今日（前日サボった分）
+  var TOMORROW_NOTIFICATION_ID_BASE = 9004; // 9004〜9006: 明日（今日サボりそうな分）
   var SKIPPED_NOTIFICATION_NAMES_SHOWN = 2;
 
   function getLocalNotifications() {
@@ -271,52 +283,111 @@
     return "昨日はお疲れさまでした。" + formatSkippedHabitNames(skippedHabitNames) + "が未達成でしたが、今日再開すれば習慣化につながります！";
   }
 
-  function skippedNotificationIds() {
-    return SKIPPED_NOTIFICATION_HOURS.map(function (_, i) {
-      return { id: SKIPPED_NOTIFICATION_ID_BASE + i };
+  function allSkippedNotificationIds() {
+    var ids = [];
+    SKIPPED_NOTIFICATION_HOURS.forEach(function (_, i) {
+      ids.push({ id: TODAY_NOTIFICATION_ID_BASE + i }, { id: TOMORROW_NOTIFICATION_ID_BASE + i });
     });
+    return ids;
   }
 
-  // 今日の習慣をすべて達成したら、まだ届いていない「未達成でした」通知は不要なので取り消す
-  function cancelSkippedNotifications() {
-    var LocalNotifications = getLocalNotifications();
-    if (!LocalNotifications) return;
-    LocalNotifications.cancel({ notifications: skippedNotificationIds() }).catch(function (err) {
-      console.warn("Good-Habits: OS通知の取り消しに失敗しました。", err);
-    });
+  // アプリ日 dayKey の hour 時。リスト更新時刻は 0〜4 時なので、10時以降はカレンダー上も同じ日付になる。
+  function dayKeyAtHour(dayKey, hour) {
+    var p = dayKey.split("-").map(Number);
+    return new Date(p[0], p[1] - 1, p[2], hour, 0, 0, 0);
   }
 
-  function scheduleSkippedNotifications(skippedHabitNames) {
+  function buildDayNotifications(idBase, dayKey, names, now) {
+    var body = buildSkippedNotificationMessage(names);
+    return SKIPPED_NOTIFICATION_HOURS.map(function (hour, i) {
+      return { id: idBase + i, title: "Good-Habits", body: body, schedule: { at: dayKeyAtHour(dayKey, hour) } };
+    }).filter(function (n) { return n.schedule.at.getTime() > now.getTime(); });
+  }
+
+  // state から「今あるべき予約」を計算する
+  function plannedSkippedNotifications(now) {
+    if (!state.settings.notifySkipped) return [];
+    var today = LOGIC.todayKey(state, now);
+    var planned = [];
+
+    var notice = state.meta.skippedNotice;
+    if (notice && notice.day === today && notice.names.length && !LOGIC.allDoneToday(state)) {
+      planned = planned.concat(buildDayNotifications(TODAY_NOTIFICATION_ID_BASE, today, notice.names, now));
+    }
+
+    var atRisk = LOGIC.atRiskHabitNames(state);
+    if (atRisk.length) {
+      planned = planned.concat(buildDayNotifications(TOMORROW_NOTIFICATION_ID_BASE, STORAGE.addDays(today, 1), atRisk, now));
+    }
+    return planned;
+  }
+
+  // 連打などで取り消しと予約が入れ違わないよう、同期処理は1本の Promise チェーンで直列に実行する
+  var notificationSyncChain = Promise.resolve();
+
+  // 通知の予約を state に合わせて作り直す。権限は確認するだけで、ダイアログは出さない。
+  function syncSkippedNotifications() {
     var LocalNotifications = getLocalNotifications();
     if (!LocalNotifications) return;
 
-    var message = buildSkippedNotificationMessage(skippedHabitNames);
-    var now = new Date();
-    var cancelIds = skippedNotificationIds();
-    var pending = SKIPPED_NOTIFICATION_HOURS.map(function (hour, i) {
-      var at = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, 0, 0, 0);
-      return { id: SKIPPED_NOTIFICATION_ID_BASE + i, at: at };
-    }).filter(function (n) { return n.at.getTime() > now.getTime(); });
-
-    LocalNotifications.requestPermissions().then(function (result) {
-      if (result.display !== "granted") return null;
-      return LocalNotifications.cancel({ notifications: cancelIds }).catch(function () {}).then(function () {
-        if (!pending.length) return null;
-        return LocalNotifications.schedule({
-          notifications: pending.map(function (n) {
-            return {
-              id: n.id,
-              title: "Good-Habits",
-              body: message,
-              schedule: { at: n.at }
-            };
-          })
-        });
+    notificationSyncChain = notificationSyncChain.then(function () {
+      return LocalNotifications.cancel({ notifications: allSkippedNotificationIds() }).catch(function () {});
+    }).then(function () {
+      var planned = plannedSkippedNotifications(new Date());
+      if (!planned.length) return null;
+      return LocalNotifications.checkPermissions().then(function (result) {
+        if (result.display !== "granted") return null;
+        return LocalNotifications.schedule({ notifications: planned });
       });
     }).catch(function (err) {
       console.warn("Good-Habits: OS通知のスケジュールに失敗しました。", err);
     });
   }
+
+  // 通知の許可がまだ決まっていなければダイアログを出す（習慣の追加時・通知設定をオンにしたときに呼ぶ）
+  function requestNotificationPermissionIfUndecided() {
+    var LocalNotifications = getLocalNotifications();
+    if (!LocalNotifications || !state.settings.notifySkipped) return;
+
+    LocalNotifications.checkPermissions().then(function (result) {
+      if (result.display === "granted" || result.display === "denied") return null;
+      return LocalNotifications.requestPermissions().then(function (requested) {
+        if (requested.display === "granted") syncSkippedNotifications();
+      });
+    }).catch(function (err) {
+      console.warn("Good-Habits: 通知の許可の確認に失敗しました。", err);
+    });
+  }
+
+  // ---- 日付の切り替わり（起動中・復帰時） --------------------------------------
+
+  var dayChangeTimer = null;
+
+  // 次の「リスト更新時刻」に日付の切り替わりを処理するタイマーを仕掛け直す
+  function armDayChangeTimer() {
+    if (dayChangeTimer) clearTimeout(dayChangeTimer);
+    var now = new Date();
+    var nextDay = STORAGE.addDays(LOGIC.todayKey(state, now), 1);
+    var delay = dayKeyAtHour(nextDay, state.settings.resetHour).getTime() - now.getTime();
+    dayChangeTimer = setTimeout(handleDayChange, Math.max(delay, 0) + 1000);
+  }
+
+  // アプリを開いたまま日付をまたいだ場合も、起動時と同じロールオーバーを行う
+  function handleDayChange() {
+    var rollover = LOGIC.runRollover(state, new Date());
+    if (rollover.rolled) {
+      currentMessage = CONTENT.randomMessage();
+      persist();
+      // 追加画面は入力途中の内容が消えるので描画し直さない（ホームに戻ったときに反映される）
+      if (activeScreen && activeScreen !== "add") goTo(activeScreen);
+    }
+    syncSkippedNotifications();
+    armDayChangeTimer();
+  }
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible") handleDayChange();
+  });
 
   // ---- 起動 -------------------------------------------------------------------
 
@@ -325,13 +396,12 @@
     UI.applyTheme(state.settings.theme);
     initHeatmapDate();
 
-    var rollover = LOGIC.runRollover(state, new Date());
+    LOGIC.runRollover(state, new Date());
     currentMessage = CONTENT.randomMessage();
     persist();
 
-    if (rollover.skippedAny && state.settings.notifySkipped) {
-      scheduleSkippedNotifications(rollover.skippedHabitNames);
-    }
+    syncSkippedNotifications();
+    armDayChangeTimer();
 
     goTo("home");
   }
