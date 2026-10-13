@@ -49,14 +49,16 @@
     <div class="screen-scroll">
       <div class="page-header">
         <button class="icon-btn" id="add-back" aria-label="戻る"></button>
-        <div class="page-title serif">新しい習慣を追加</div>
+        <div class="page-title serif" id="add-title">新しい習慣を追加</div>
       </div>
       <div class="field">
         <label>習慣名</label>
         <input class="text-input" id="add-name-input" placeholder="例）朝の散歩" maxlength="30">
       </div>
-      <div class="section-label">習慣化までの日数を選択</div>
-      <div class="option-list" id="add-options"></div>
+      <div id="add-course-section">
+        <div class="section-label">習慣化までの日数を選択</div>
+        <div class="option-list" id="add-options"></div>
+      </div>
     </div>
     <div class="screen-footer">
       <button class="btn-primary" id="add-submit" disabled>習慣を登録する</button>

@@ -93,6 +93,17 @@
       return;
     }
 
+    var editBtn = e.target.closest('[data-action="edit-habit"]');
+    if (editBtn) {
+      var eid = Number(editBtn.getAttribute("data-habit-id"));
+      var editHabit = state.habits.filter(function (h) { return h.id === eid; })[0];
+      if (editHabit) {
+        goTo("add");
+        UI.setupEditScreen(editHabit);
+      }
+      return;
+    }
+
     var moveUpBtn = e.target.closest('[data-action="move-habit-up"]');
     if (moveUpBtn) {
       var upId = Number(moveUpBtn.getAttribute("data-habit-id"));
@@ -223,6 +234,16 @@
   el("add-name-input").addEventListener("input", UI.updateAddSubmitState);
   el("add-submit").addEventListener("click", function () {
     var name = el("add-name-input").value.trim();
+    var editingId = UI.getEditingHabitId();
+    if (editingId !== null) {
+      if (!name) return;
+      if (LOGIC.renameHabit(state, editingId, name)) {
+        persist();
+        syncSkippedNotifications();
+      }
+      goTo("home");
+      return;
+    }
     var cat = UI.getAddSelectedCategory();
     if (!name || !cat) return;
     LOGIC.addHabit(state, name, cat);

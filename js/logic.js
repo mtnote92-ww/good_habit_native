@@ -109,6 +109,25 @@ window.GH_LOGIC = (function () {
     state.habits = state.habits.filter(function (h) { return h.id !== habitId; });
   }
 
+  // 習慣名を変更する。コース・進捗・連続日数はそのまま引き継ぐ。
+  function renameHabit(state, habitId, newName) {
+    if (!newName) return false;
+    var habit = state.habits.filter(function (h) { return h.id === habitId; })[0];
+    if (!habit || habit.name === newName) return false;
+    var oldName = habit.name;
+    habit.name = newName;
+    // 今日の「前日サボった」通知の文面にも新しい名前を使う
+    var notice = state.meta.skippedNotice;
+    if (notice && notice.names) {
+      var stillUsed = state.habits.some(function (h) { return h.name === oldName; });
+      if (!stillUsed) {
+        notice.names = notice.names.map(function (n) { return n === oldName ? newName : n; })
+          .filter(function (n, i, arr) { return arr.indexOf(n) === i; });
+      }
+    }
+    return true;
+  }
+
   // 表示順を1つ入れ替える。direction: -1で上へ、+1で下へ。
   function moveHabit(state, habitId, direction) {
     var idx = -1;
@@ -252,6 +271,7 @@ window.GH_LOGIC = (function () {
     removeHabit: removeHabit,
     moveHabit: moveHabit,
     toggleHabitDone: toggleHabitDone,
+    renameHabit: renameHabit,
     checkBadges: checkBadges,
     buildMonthMatrix: buildMonthMatrix,
     currentLongestStreak: currentLongestStreak,

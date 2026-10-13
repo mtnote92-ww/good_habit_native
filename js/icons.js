@@ -25,6 +25,7 @@ window.GH_ICONS = {
   crown: '<svg viewBox="0 0 24 24" fill="none"><path d="M4 18h16l-1.4-8-4.1 3.2L12 7l-2.5 6.2L5.4 10 4 18z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M4 20h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
   wreath: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 5c-2 1-3 3-3 5"/><path d="M8 9c-2 1-3 3-3 5"/><path d="M8 13c-1.5 1.2-2.5 3-2.5 5"/><path d="M15 5c2 1 3 3 3 5"/><path d="M16 9c2 1 3 3 3 5"/><path d="M16 13c1.5 1.2 2.5 3 2.5 5"/></svg>',
   close: '<svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  pencil: '<svg viewBox="0 0 24 24" fill="none"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.7"/></svg>',
   trash: '<svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-1 13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   bell: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3a5 5 0 0 0-5 5v3.5c0 .9-.35 1.77-.98 2.4L5 15h14l-1.02-1.1a3.4 3.4 0 0 1-.98-2.4V8a5 5 0 0 0-5-5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 18a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>'
 };

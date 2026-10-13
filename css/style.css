@@ -174,8 +174,10 @@ svg { display: block; }
 .habit-days-label { font-size: 9px; color: var(--text-dim); }
 .habit-streak { display: flex; align-items: center; gap: 3px; font-size: 11px; color: var(--flame); font-weight: 700; }
 .habit-streak svg { width: 13px; height: 13px; }
-.habit-remove { flex: none; color: var(--text-dim); }
-.habit-remove svg { width: 14px; height: 14px; }
+.habit-actions { flex: none; display: flex; flex-direction: column; gap: 10px; }
+.habit-edit, .habit-remove { color: var(--text-dim); }
+.habit-edit svg, .habit-remove svg { width: 14px; height: 14px; }
+#add-course-section { display: flex; flex-direction: column; gap: 22px; }
 
 .fab {
   position: absolute; right: 20px; bottom: calc(76px + 20px + env(safe-area-inset-bottom));

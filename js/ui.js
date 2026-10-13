@@ -78,7 +78,10 @@ window.GH_UI = (function () {
           '<div class="habit-days-label">習慣化まで</div>' +
           '<div class="habit-streak">' + ICONS.flame + habit.currentStreak + "</div>" +
         "</div>" +
-        '<button class="habit-remove" data-action="remove-habit" data-habit-id="' + habit.id + '" aria-label="削除">' + ICONS.trash + "</button>" +
+        '<div class="habit-actions">' +
+          '<button class="habit-edit" data-action="edit-habit" data-habit-id="' + habit.id + '" aria-label="習慣名を編集">' + ICONS.pencil + "</button>" +
+          '<button class="habit-remove" data-action="remove-habit" data-habit-id="' + habit.id + '" aria-label="削除">' + ICONS.trash + "</button>" +
+        "</div>" +
       "</div>"
     );
   }
@@ -108,15 +111,31 @@ window.GH_UI = (function () {
     el("fab-add").innerHTML = ICONS.plus;
   }
 
-  // ---- 習慣を追加 -----------------------------------------------------------
+  // ---- 習慣を追加・習慣名の編集 -------------------------------------------------
+  // 編集は追加画面を流用する。編集中はコース選択を隠し、習慣名だけを変更できる。
 
   var addSelectedCategory = null;
+  var editingHabitId = null;
 
   function resetAddScreen() {
     addSelectedCategory = null;
+    editingHabitId = null;
+    el("add-title").textContent = "新しい習慣を追加";
+    el("add-submit").textContent = "習慣を登録する";
+    el("add-course-section").classList.remove("hidden");
     el("add-name-input").value = "";
     renderAddOptions();
     el("add-submit").disabled = true;
+  }
+
+  function setupEditScreen(habit) {
+    editingHabitId = habit.id;
+    el("add-back").innerHTML = ICONS.back;
+    el("add-title").textContent = "習慣名を編集";
+    el("add-submit").textContent = "変更を保存する";
+    el("add-course-section").classList.add("hidden");
+    el("add-name-input").value = habit.name;
+    updateAddSubmitState();
   }
 
   function renderAddOptions() {
@@ -135,7 +154,7 @@ window.GH_UI = (function () {
 
   function updateAddSubmitState() {
     var name = el("add-name-input").value.trim();
-    el("add-submit").disabled = !(name && addSelectedCategory);
+    el("add-submit").disabled = !(name && (editingHabitId !== null || addSelectedCategory));
   }
 
   // ---- バッジ一覧 ------------------------------------------------------------
@@ -409,6 +428,8 @@ window.GH_UI = (function () {
     updateAddSubmitState: updateAddSubmitState,
     getAddSelectedCategory: function () { return addSelectedCategory; },
     setAddSelectedCategory: function (key) { addSelectedCategory = key; },
+    setupEditScreen: setupEditScreen,
+    getEditingHabitId: function () { return editingHabitId; },
     renderBadges: renderBadges,
     renderBadgeDetail: renderBadgeDetail,
     renderHeatmap: renderHeatmap,
