@@ -318,10 +318,20 @@
     return new Date(p[0], p[1] - 1, p[2], hour, 0, 0, 0);
   }
 
+  // 「10時ごろ」に届けば十分なので、正確な時刻のアラーム（SCHEDULE_EXACT_ALARM）は使わない。
+  // isExactNotification を省くと、プラグインが予約のたびに「アラームとリマインダー」の設定画面を開いてしまう。
+  // allowWhileIdle で、端末の省電力（Doze）中でも遅れすぎずに届くようにする。
   function buildDayNotifications(idBase, dayKey, names, now) {
     var body = buildSkippedNotificationMessage(names);
     return SKIPPED_NOTIFICATION_HOURS.map(function (hour, i) {
-      return { id: idBase + i, title: "Good-Habits", body: body, schedule: { at: dayKeyAtHour(dayKey, hour) } };
+      return {
+        id: idBase + i,
+        title: "Good-Habits",
+        body: body,
+        largeBody: body, // 展開したときに全文が読めるようにする（body だけだと1行で切れる）
+        schedule: { at: dayKeyAtHour(dayKey, hour), allowWhileIdle: true },
+        isExactNotification: false
+      };
     }).filter(function (n) { return n.schedule.at.getTime() > now.getTime(); });
   }
 
