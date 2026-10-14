@@ -335,8 +335,7 @@ window.GH_UI = (function () {
     }).join("");
 
     var toggles = [
-      { key: "notifySkipped", name: "未達成日の通知", desc: "前日サボった習慣がある場合、翌日10時・12時・21時にOS通知＋アプリ内バナーで通知" },
-      { key: "notifySound", name: "達成演出サウンド", desc: "花火演出・称賛コメント時の効果音（今後実装予定）" }
+      { key: "notifySkipped", name: "未達成日の通知", desc: "前日サボった習慣がある場合、翌日10時・12時・21時にOS通知＋アプリ内バナーで通知" }
     ];
     el("toggle-card").innerHTML = toggles.map(function (t) {
       var on = !!state.settings[t.key];

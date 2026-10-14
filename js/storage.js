@@ -36,8 +36,7 @@ window.GH_STORAGE = (function () {
       settings: {
         theme: "classic",
         resetHour: 2,
-        notifySkipped: true,
-        notifySound: false
+        notifySkipped: true
       },
       habits: [],
       history: {}, // { 'YYYY-MM-DD': { done: number, total: number } }
